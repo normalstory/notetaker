@@ -19,7 +19,16 @@ export const topicRouter = createTRPCRouter({
             data: {
                 title: input.title,
                 userId: ctx.session.user.id,
-            }
-        })
-    })
+            },
+        });
+    }),
+
+    // **update-01 토픽 삭제 
+    delete: protectedProcedure.input(z.object({ id: z.string()})).mutation(async ({ ctx, input }) => {
+        return ctx.prisma.topic.delete({
+            where: {
+                id: input.id,
+            },
+        });
+    }),
 });

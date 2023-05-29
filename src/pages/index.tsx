@@ -73,9 +73,17 @@ const Content: React.FC = () =>{
       //-> But the typescript definition is again really tight and it says that refresh topic returns a promise and you aren't awaiting that.
       
       //So to avoid that we can just do void and that basically says cool just ignore the return type.
-      void refetchTopics();
+      void refetchTopics(); //자동 새로고침 
     }
   });
+  
+  // **update-01 토픽 삭제 기능 추가 
+  const deleteTopic = api.topic.delete.useMutation({
+    onSuccess: () => {
+      void refetchTopics(); //자동 새로고침 
+    },
+  });
+
 
 
   // save for notes
@@ -92,20 +100,20 @@ const Content: React.FC = () =>{
   );
 
   // N-2 And then once we have that, we can create createNote, which is our mutation that calls create 
-const createNote = api.note.create.useMutation({
-  //and when it's successful, it calls refetch notes,
-  onSuccess: () => {
-    //just like create topic called refetch topic.
-    void refetchNotes();
-  },
-});
+  const createNote = api.note.create.useMutation({
+    //and when it's successful, it calls refetch notes,
+    onSuccess: () => {
+      //just like create topic called refetch topic.
+      void refetchNotes();
+    },
+  });
 
-// N-3
-const deleteNote = api.note.delete.useMutation({
-  onSuccess: () => {
-    void refetchNotes();
-  },
-});
+  // N-3
+  const deleteNote = api.note.delete.useMutation({
+    onSuccess: () => {
+      void refetchNotes();
+    },
+  });
 
 
   // 2-2) and then we're going to start actually laying this thing out
@@ -135,6 +143,17 @@ const deleteNote = api.note.delete.useMutation({
         }}/>
       </div>
       <div className="col-span-3">
+
+        <div className="navbar bg-base-100">
+          <div className="flex-1">
+            <a className="btn btn-ghost normal-case text-xl">{selectedTopic?.title}</a>
+          </div>
+          <div className="flex-none gap-2">
+            <button className="btn btn-square btn-outline" onClick={() => void deleteTopic.mutate({id: selectedTopic?.id ?? ""})}>
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+          </div>
+        </div>
 
         <div>
           {notes?.map((note)=>(
