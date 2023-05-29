@@ -9,6 +9,9 @@ import { useSession } from "next-auth/react";
 import { useState } from "react";
 //4
 import { api, type RouterOutputs } from "~/utils/api";
+//notes
+import { NoteEditor } from "~/components/NoteEditor";
+import { NoteCard } from "~/components/NoteCard";
 
 
 const Home: NextPage = () => {
@@ -74,6 +77,37 @@ const Content: React.FC = () =>{
     }
   });
 
+
+  // save for notes
+  // N-1 So we're going to call note dot getAll and we'll map that data output to notes in the way of a refetch notes,
+  const { data: notes, refetch: refetchNotes } = api.note.getAll.useQuery(
+    {
+      //and then we'll connect topic ID to the site to topic ID.
+      topicId: selectedTopic?.id ?? "",
+    },
+    {
+      //and we'll do our enabled things so that only if we have a user and we have a slide, a topic, are we going to run our get all pretty easy.
+      enabled: sessionData?.user !== undefined && selectedTopic !== null,
+    }
+  );
+
+  // N-2 And then once we have that, we can create createNote, which is our mutation that calls create 
+const createNote = api.note.create.useMutation({
+  //and when it's successful, it calls refetch notes,
+  onSuccess: () => {
+    //just like create topic called refetch topic.
+    void refetchNotes();
+  },
+});
+
+// N-3
+const deleteNote = api.note.delete.useMutation({
+  onSuccess: () => {
+    void refetchNotes();
+  },
+});
+
+
   // 2-2) and then we're going to start actually laying this thing out
   return (
     <div className="mx-5 mt-5 grid grid-cols-4 gap-2">
@@ -99,7 +133,24 @@ const Content: React.FC = () =>{
           }
         }}/>
       </div>
-      <div className="col-span-3"></div>
+      <div className="col-span-3">
+
+        <div>
+          {notes?.map((note)=>(
+            <div key={note.id} className="mt-5">
+              <NoteCard note={note} onDelete={() => void deleteNote.mutate({id: note.id})} />
+            </div>
+          ))}
+        </div>
+
+        <NoteEditor onSave={({ title, content}) => {
+          void createNote.mutate({
+            title,
+            content,
+            topicId: selectedTopic?.id ?? "",
+          });
+        }}/>
+      </div>
     </div>
   )
 };
