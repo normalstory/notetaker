@@ -117,6 +117,7 @@ const deleteNote = api.note.delete.useMutation({
             <li key={topic.id}>
               <a href="#" onClick={(evt)=>{
                 evt.preventDefault();
+                setSelectedTopic(topic);
               }}>
                 {topic.title}
               </a>
